@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(robot-multi-floor-navigation)
+project(multi_floor_navigation)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -105,7 +105,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES robot-multi-floor-navigation
+#  LIBRARIES multi_floor_navigation
 #  CATKIN_DEPENDS actionlib move_base_msgs roscpp std_msgs
 #  DEPENDS system_lib
 )
@@ -134,7 +134,7 @@ add_library(${PROJECT_NAME}
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/robot-multi-floor-navigation_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/multi_floor_navigation_node.cpp)
 
 add_executable(multi_floor_navigation_node src/multi_floor_navigation.cpp)
 add_dependencies(multi_floor_navigation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -201,7 +201,7 @@ install(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_robot-multi-floor-navigation.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_multi_floor_navigation.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

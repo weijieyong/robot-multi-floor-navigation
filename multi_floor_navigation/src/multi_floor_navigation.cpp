@@ -1,4 +1,4 @@
-#include "robot-multi-floor-navigation/multi_floor_navigation.h"
+#include "multi_floor_navigation/multi_floor_navigation.h"
 
 
 MultiFloorNavigation::MultiFloorNavigation() :
