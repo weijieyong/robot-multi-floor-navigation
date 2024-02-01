@@ -8,13 +8,18 @@
 #include "std_msgs/String.h"
 #include <geometry_msgs/Twist.h>
 
+#include <multi_floor_navigation/MapSwitcher.h>
+
 
 class MultiFloorNavigation
 {
 private:
     enum States{
-        INIT_POSE,
-        NAV_TO_GOAL,
+        SELECT_MAP,
+        INIT_POSE0,
+        INIT_POSE1,
+        NAV_TO_GOAL0,
+        NAV_TO_GOAL1,
         CALL_ELEVATOR_0,
         ENTER_ELEVATOR_0,
         CALL_ELEVATOR_1,
@@ -22,11 +27,15 @@ private:
         DONE
     };
     States state;
+    int target_floor;
     ros::Publisher initial_pose_pub, goal_pub, elevator_pub, cmd_vel_pub;
     ros::Subscriber amcl_pose_sub, move_base_status_sub;
+    ros::ServiceClient switch_map_client;
     geometry_msgs::PoseWithCovarianceStamped curr_pose;
     actionlib_msgs::GoalStatusArray move_base_status_msg;
     bool is_goal_sent, is_goal_active;
+    multi_floor_navigation::MapSwitcher srv;
+
 
     void amclPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
     void movebaseStatusCallback(const actionlib_msgs::GoalStatusArray::ConstPtr& msg);

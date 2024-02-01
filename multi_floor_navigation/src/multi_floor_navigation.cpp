@@ -2,9 +2,10 @@
 
 
 MultiFloorNavigation::MultiFloorNavigation() :
-    state(MultiFloorNavigation::States::INIT_POSE),
+    state(MultiFloorNavigation::States::SELECT_MAP),
     is_goal_sent(false),
-    is_goal_active(false)
+    is_goal_active(false),
+    target_floor(0)
 {
 }
 
@@ -22,6 +23,8 @@ void MultiFloorNavigation::initialize(ros::NodeHandle& n){
     
     amcl_pose_sub = n.subscribe("amcl_pose", 1, &MultiFloorNavigation::amclPoseCallback, this);
     move_base_status_sub = n.subscribe("move_base/status", 1, &MultiFloorNavigation::movebaseStatusCallback, this);
+
+    switch_map_client = n.serviceClient<multi_floor_navigation::MapSwitcher>("switch_map");
 
 }
 
@@ -108,14 +111,34 @@ void MultiFloorNavigation::publishCmdVel(double linear_vel=0.0, double angular_v
 void MultiFloorNavigation::execute()
 {
     switch(state){
-        case States::INIT_POSE:
-            ROS_INFO_ONCE("Initializing robot at x:4.0, y:-5.0, z:0.5, yaw:0.0deg");
-            initializeRobotPose(4.0, -5.0, 0.5, 0.0); // TODO: hard-coded
-            state = States::NAV_TO_GOAL;
+        case States::SELECT_MAP:
+            srv.request.floor_no = target_floor;
+            if(switch_map_client.call(srv)) {
+                ROS_INFO("Service Response: %s",srv.response.message.c_str());
+                if (target_floor == 0) {
+                    state = States::INIT_POSE0;
+                }
+                else {
+                    state = States::INIT_POSE1;
+                }
+            }
+
             break;
 
-        case States::NAV_TO_GOAL:
-            ROS_INFO_ONCE("Sending goal1");
+        case States::INIT_POSE0:
+            ROS_INFO_ONCE("Init POSE 0");
+            initializeRobotPose(4.0, -5.0, 0.0, 0.0); // TODO: hard-coded
+            state = States::NAV_TO_GOAL0;
+            break;
+
+        case States::INIT_POSE1:
+            ROS_INFO_ONCE("Init POSE 1");
+            initializeRobotPose(3.0, -0.5, 0.0, M_PI); // TODO: hard-coded
+            state = States::NAV_TO_GOAL1;
+            break;
+
+        case States::NAV_TO_GOAL0:
+            ROS_INFO_ONCE("Sending goal0");
             if(!is_goal_sent) {
                 sendSimpleGoal(3.0, -0.5, 0.5, M_PI);
                 is_goal_sent = true;
@@ -129,6 +152,26 @@ void MultiFloorNavigation::execute()
                 else if(is_goal_active && 
                     currentStatus == actionlib_msgs::GoalStatus::SUCCEEDED) {
                     state = States::CALL_ELEVATOR_0;
+                    is_goal_sent = is_goal_active = false;
+                }
+            }
+            break;
+
+        case States::NAV_TO_GOAL1:
+            ROS_INFO_ONCE("Sending goal1");
+            if(!is_goal_sent) {
+                sendSimpleGoal(4.0, 5.0, 3.2, M_PI);
+                is_goal_sent = true;
+            }
+            if(!move_base_status_msg.status_list.empty()) {
+                auto& currentStatus = move_base_status_msg.status_list[0].status;
+
+                if(currentStatus == actionlib_msgs::GoalStatus::ACTIVE) {
+                    is_goal_active = true;
+                }
+                else if(is_goal_active && 
+                    currentStatus == actionlib_msgs::GoalStatus::SUCCEEDED) {
+                    state = States::DONE;
                     is_goal_sent = is_goal_active = false;
                 }
             }
@@ -165,7 +208,8 @@ void MultiFloorNavigation::execute()
             
             if(fabs(curr_pose.pose.pose.position.x - 3.0) < 0.1) { // TODO: hard coded tolerance
                 publishCmdVel(0.0, 0.0);
-                state = States::DONE;
+                target_floor = 1;
+                state = States::SELECT_MAP;
             }
             else {
                 publishCmdVel(-0.3, 0.0);
