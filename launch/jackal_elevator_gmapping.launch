@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<launch>
+  
+  <!--- Run Jackal Gazebo -->  
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+  <arg name="world_name" default="$(find jackal_elevator)/worlds/modified_elevator.world" />
+  <arg name="config" default="gmapping" />
+  <arg name="front_laser" default="true" />
+
+  <!-- Launch Gazebo with the specified world -->
+  <include file="$(find jackal_elevator)/launch/jackal_repos_world.launch">
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="use_sim_time" value="$(arg use_sim_time)" />
+    <arg name="headless" value="$(arg headless)" />
+    <arg name="world_name" value="$(arg world_name)" />
+    <arg name="front_laser" value="$(arg front_laser)" />
+    <!-- spawn from gazebo map origin, z_pos: floor0 = 0.5, floor1 = 3.5-->
+    <arg name="x_pos" value="0.0"/>
+    <arg name="y_pos" value="0.0"/>
+    <arg name="z_pos" value="0.5"/>
+  </include>
+
+  <!--- Run gmapping -->
+  <include file="$(find jackal_navigation)/launch/include/gmapping.launch" />
+
+  <!--- Run Move Base -->
+  <include file="$(find jackal_navigation)/launch/include/move_base.launch" />
+
+  <!--- Run Jackal RViz -->  
+  <include file="$(find jackal_viz)/launch/view_robot.launch">
+    <arg name="config" value="$(arg config)"/>    
+  </include>
+
+</launch>
