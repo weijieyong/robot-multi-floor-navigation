@@ -8,7 +8,8 @@
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
   <arg name="world_name" default="$(find jackal_elevator)/worlds/modified_elevator.world" />
-  <arg name="map_file" default="$(find multi_floor_navigation)/maps/floor0.yaml"/> <!-- Generate map using SLAM, put map in the appropriate folder and refer here -->
+  <arg name="map_file0" default="$(find multi_floor_navigation)/maps/floor0.yaml"/> <!-- Generate map using SLAM, put map in the appropriate folder and refer here -->
+  <arg name="map_file1" default="$(find multi_floor_navigation)/maps/floor1.yaml"/> <!-- Generate map using SLAM, put map in the appropriate folder and refer here -->
   <arg name="config" default="navigation" />
   <arg name="front_laser" default="true" />
 
@@ -26,7 +27,12 @@
   </include>
 
   <!-- Run Map Server -->
-  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+  <node name="map_server0" pkg="map_server" type="map_server" args="$(arg map_file0)">
+      <remap from="map" to="map0"/>
+  </node>
+  <node name="map_server1" pkg="map_server" type="map_server" args="$(arg map_file1)">
+      <remap from="map" to="map1"/>
+  </node>
 
   <!-- Run AMCL -->
   <node pkg="amcl" type="amcl" name="amcl">
@@ -106,5 +112,8 @@
   <include file="$(find jackal_viz)/launch/view_robot.launch">
     <arg name="config" value="$(arg config)"/>    
   </include>
+
+  <!-- Run Switch Map Node -->
+  <node pkg="multi_floor_navigation" type="map_switcher_node" name="map_switcher_node"/>
 
 </launch>
